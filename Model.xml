@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+
+const int SENS_ADV = 20;
+
+
+const int BAGS = 5;
+
+typedef int[0, BAGS-1] bag_id;
+
+
+
+bool fwd;</declaration>
+	<template>
+		<name x="5" y="5">Bag</name>
+		<parameter>bag_id id</parameter>
+		<declaration>// Place local declarations here.
+clock time;</declaration>
+		<location id="id0" x="459" y="-68">
+			<name x="442" y="-102">start</name>
+		</location>
+		<location id="id1" x="943" y="272">
+			<name x="933" y="238">B</name>
+		</location>
+		<location id="id2" x="-17" y="272">
+			<name x="-27" y="238">A</name>
+		</location>
+		<location id="id3" x="102" y="272">
+			<name x="92" y="238">e1</name>
+			<label kind="invariant" x="68" y="289">time &lt;= 12</label>
+		</location>
+		<location id="id4" x="816" y="272">
+			<name x="806" y="238">e2</name>
+			<label kind="invariant" x="806" y="289">time &lt;= 12</label>
+		</location>
+		<location id="id5" x="459" y="272">
+			<name x="449" y="238">f</name>
+			<label kind="invariant" x="425" y="289">time &lt;= 33</label>
+		</location>
+		<location id="id6" x="646" y="340">
+			<name x="636" y="306">d2</name>
+			<label kind="invariant" x="636" y="357">time &lt;= 24</label>
+		</location>
+		<location id="id7" x="646" y="272">
+			<name x="636" y="238">c2</name>
+			<label kind="invariant" x="603" y="280">time &lt;= 28</label>
+		</location>
+		<location id="id8" x="646" y="136">
+			<name x="636" y="102">b2</name>
+			<label kind="invariant" x="654" y="144">time &lt;= 24</label>
+		</location>
+		<location id="id9" x="272" y="340">
+			<name x="262" y="306">d1</name>
+			<label kind="invariant" x="262" y="357">time &lt;= 24</label>
+		</location>
+		<location id="id10" x="272" y="272">
+			<name x="262" y="238">c1</name>
+			<label kind="invariant" x="238" y="280">time &lt;= 28</label>
+		</location>
+		<location id="id11" x="272" y="136">
+			<name x="262" y="102">b1</name>
+			<label kind="invariant" x="280" y="144">time &lt;=24</label>
+		</location>
+		<location id="id12" x="272" y="0">
+			<name x="262" y="-34">a1</name>
+			<label kind="invariant" x="280" y="8">time &lt;=16</label>
+		</location>
+		<location id="id13" x="646" y="0">
+			<name x="636" y="-34">a2</name>
+			<label kind="invariant" x="654" y="8">time &lt;=16</label>
+		</location>
+		<init ref="id0"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id13"/>
+			<label kind="assignment" x="484" y="-34">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id12"/>
+			<label kind="assignment" x="365" y="-34">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id1"/>
+			<label kind="guard" x="834" y="238">!fwd and
+time &gt;= 10</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-8" y="229">fwd and
+time &gt;= 10</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id3"/>
+			<label kind="guard" x="153" y="314">fwd and
+time &gt;= 23</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id9"/>
+			<label kind="guard" x="340" y="314">fwd and
+time &gt;= 27</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id6"/>
+			<label kind="guard" x="518" y="314">!fwd and 
+time &gt;= 27</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id4"/>
+			<label kind="guard" x="705" y="314">!fwd and
+time &gt;= 23</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id5"/>
+			<label kind="guard" x="527" y="238">fwd and
+time &gt;= 24</label>
+			<label kind="assignment" x="527" y="272">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id3"/>
+			<label kind="guard" x="153" y="238">fwd and
+time &gt;= 24</label>
+			<label kind="assignment" x="153" y="272">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id4"/>
+			<label kind="guard" x="688" y="238">!fwd and
+time &gt;= 24</label>
+			<label kind="assignment" x="688" y="272">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id5"/>
+			<label kind="guard" x="323" y="238">!fwd and
+time &gt;= 24</label>
+			<label kind="assignment" x="323" y="272">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="guard" x="654" y="161">time == 24</label>
+			<label kind="assignment" x="654" y="178">time =0</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id8"/>
+			<label kind="guard" x="654" y="25">time == 16</label>
+			<label kind="assignment" x="654" y="42">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="guard" x="280" y="161">time == 24</label>
+			<label kind="assignment" x="280" y="178">time =0</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="guard" x="280" y="25">time==16</label>
+			<label kind="assignment" x="280" y="42">time = 0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Controller</name>
+		<declaration>clock time;</declaration>
+		<location id="id14" x="68" y="238">
+		</location>
+		<location id="id15" x="-68" y="238">
+		</location>
+		<location id="id16" x="68" y="136">
+			<name x="85" y="127">Black</name>
+			<label kind="invariant" x="85" y="144">time  &lt;= SENS_ADV</label>
+		</location>
+		<location id="id17" x="-68" y="136">
+			<name x="-127" y="127">Yellow</name>
+			<label kind="invariant" x="-221" y="144">time &lt;= SENS_ADV</label>
+		</location>
+		<location id="id18" x="0" y="68">
+			<label kind="invariant" x="17" y="59">time &gt;= 8</label>
+		</location>
+		<location id="id19" x="0" y="0">
+			<name x="-10" y="-34">Idle</name>
+		</location>
+		<init ref="id19"/>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id16"/>
+			<label kind="guard" x="59" y="76">time == 8 and
+sensor &lt;=45</label>
+			<label kind="assignment" x="59" y="110">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="guard" x="-136" y="68">time == 8 and
+sensor &gt; 45</label>
+			<label kind="assignment" x="-136" y="102">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
+			<label kind="guard" x="8" y="17">sensor &lt;= 70</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+//Process = Template();
+// List one or more processes to be composed into a system.
+system Bag;
+    </system>
+	<queries>
+	</queries>
+</nta>
