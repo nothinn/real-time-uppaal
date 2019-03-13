@@ -9,8 +9,13 @@ const int SENS_ADV = 20;
 
 const int BAGS = 5;
 
+
+
 typedef int[0, BAGS-1] bag_id;
 
+
+
+int sens_val;
 
 
 bool fwd;</declaration>
@@ -174,44 +179,122 @@ time &gt;= 24</label>
 	</template>
 	<template>
 		<name>Controller</name>
-		<declaration>clock time;</declaration>
-		<location id="id14" x="68" y="238">
+		<declaration>clock time;
+
+bool dirA, destA;
+
+int sens_val_local;</declaration>
+		<location id="id14" x="680" y="136">
 		</location>
-		<location id="id15" x="-68" y="238">
+		<location id="id15" x="476" y="280">
 		</location>
-		<location id="id16" x="68" y="136">
-			<name x="85" y="127">Black</name>
-			<label kind="invariant" x="85" y="144">time  &lt;= SENS_ADV</label>
+		<location id="id16" x="476" y="136">
+			<name x="433" y="102">Decide_stop_not</name>
 		</location>
-		<location id="id17" x="-68" y="136">
-			<name x="-127" y="127">Yellow</name>
-			<label kind="invariant" x="-221" y="144">time &lt;= SENS_ADV</label>
+		<location id="id17" x="-136" y="34">
+			<name x="-161" y="8">Poll</name>
 		</location>
-		<location id="id18" x="0" y="68">
-			<label kind="invariant" x="17" y="59">time &gt;= 8</label>
+		<location id="id18" x="348" y="136">
+			<name x="297" y="102">Wait_advance</name>
+			<label kind="invariant" x="306" y="153">time &lt;=20</label>
 		</location>
-		<location id="id19" x="0" y="0">
-			<name x="-10" y="-34">Idle</name>
+		<location id="id19" x="204" y="136">
+			<name x="187" y="102">Det_dest</name>
 		</location>
-		<init ref="id19"/>
+		<location id="id20" x="0" y="136">
+			<name x="-127" y="136">Wait_color_valid</name>
+			<label kind="invariant" x="-25" y="153">time &lt;=8</label>
+		</location>
+		<location id="id21" x="0" y="34">
+			<name x="17" y="25">Activated_sensor</name>
+		</location>
+		<location id="id22" x="0" y="-34">
+			<name x="17" y="-51">Idle</name>
+		</location>
+		<location id="id23" x="0" y="-93">
+			<name x="-10" y="-127">Init</name>
+		</location>
+		<init ref="id23"/>
 		<transition>
-			<source ref="id18"/>
-			<target ref="id16"/>
-			<label kind="guard" x="59" y="76">time == 8 and
-sensor &lt;=45</label>
-			<label kind="assignment" x="59" y="110">time = 0</label>
+			<source ref="id16"/>
+			<target ref="id14"/>
+			<label kind="guard" x="527" y="136">dirA == destA</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="guard" x="476" y="178">dirA != destA</label>
+			<label kind="synchronisation" x="476" y="191">motor_b_stop!</label>
+			<label kind="assignment" x="476" y="208">time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id18"/>
+			<target ref="id16"/>
+			<label kind="guard" x="365" y="119">time == 20</label>
+			<label kind="assignment" x="366" y="136">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-204" y="-17">sens_val_local != sens_val</label>
+			<label kind="assignment" x="-110" y="-34">time = 0</label>
+			<nail x="-93" y="0"/>
+			<nail x="-93" y="0"/>
+			<nail x="-42" y="0"/>
+			<nail x="-42" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
 			<target ref="id17"/>
-			<label kind="guard" x="-136" y="68">time == 8 and
-sensor &gt; 45</label>
-			<label kind="assignment" x="-136" y="102">time = 0</label>
+			<label kind="guard" x="-204" y="102">sens_val &gt; BLOCKED</label>
+			<label kind="assignment" x="-204" y="68">sens_val_local = sens_val,
+time = 0</label>
+			<nail x="-42" y="68"/>
+			<nail x="-93" y="68"/>
 		</transition>
 		<transition>
 			<source ref="id19"/>
 			<target ref="id18"/>
-			<label kind="guard" x="8" y="17">sensor &lt;= 70</label>
+			<label kind="synchronisation" x="221" y="119">sens_passivate!</label>
+			<label kind="assignment" x="222" y="136">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id19"/>
+			<label kind="guard" x="68" y="170">time == 8,
+sens_val &gt; BLACK</label>
+			<label kind="assignment" x="68" y="204">destA = true,
+time = 0</label>
+			<nail x="68" y="170"/>
+			<nail x="153" y="170"/>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id19"/>
+			<label kind="guard" x="102" y="68">time == 8,
+sens_val &lt;= BLACK</label>
+			<label kind="assignment" x="59" y="102">destA = false
+time = 0</label>
+			<nail x="59" y="102"/>
+			<nail x="153" y="102"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id20"/>
+			<label kind="guard" x="8" y="42">sens_val &lt;= BLOCKED</label>
+			<label kind="assignment" x="8" y="76">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="8" y="-17">sens_activate!</label>
+			<label kind="assignment" x="8" y="0">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id22"/>
+			<label kind="assignment" x="17" y="-85">dirA = true,
+time = 0</label>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
