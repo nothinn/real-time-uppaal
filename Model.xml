@@ -14,6 +14,8 @@ const int BAGS = 5;
 typedef int[0, BAGS-1] bag_id;
 
 
+chan sens_activate, sens_passivate;
+
 
 int sens_val;
 
