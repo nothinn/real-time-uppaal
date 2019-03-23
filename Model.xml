@@ -533,7 +533,7 @@ system Controller, Sensor,Bag;
 		<query>
 			<formula>A[] Controller.read_sens imply Controller.sens_val_local &lt; 65
 			</formula>
-			<comment>
+			<comment>When controller is in the read state, it will either have read black or yellow!
 			</comment>
 		</query>
 	</queries>
