@@ -38,9 +38,9 @@ int sens_val, sens_val_bag;
 int sens_val1, sens_val_bag1;
 
 
-bool fwd, belt_a, belt_b;
+bool fwd, motC, belt_a, belt_b;
 
-bool bag_on_a = false, sensor_activated = false;
+bool bag_on_a = false, bag_on_a1 = false, sensor_activated = false;
 
 bool belt_b_waiting = false;
 
@@ -184,7 +184,7 @@ clock handling_time;</declaration>
 			<target ref="id0"/>
 			<label kind="synchronisation" x="272" y="-510">user_set_bag_left[id]?</label>
 			<label kind="assignment" x="204" y="-510">time = 0,
-bag_on_a = true</label>
+bag_on_a1 = true</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -256,7 +256,7 @@ time = 0, sens_val_bag = bag_col</label>
 			<label kind="synchronisation" x="34" y="-34">bag_to_sens1_broad!</label>
 			<label kind="assignment" x="25" y="-85">bag_col = BLOCKED,
 time = 0,sens_val_bag1 = bag_col,
-bag_on_a = false</label>
+bag_on_a1 = false</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
@@ -338,7 +338,7 @@ local_fwd = fwd</label>
 		<transition>
 			<source ref="id25"/>
 			<target ref="id11"/>
-			<label kind="guard" x="527" y="391">fwd != local_fwd</label>
+			<label kind="guard" x="527" y="391">fwd != local_fwd or !motC</label>
 			<label kind="assignment" x="569" y="408">time = 0</label>
 			<nail x="595" y="289"/>
 			<nail x="603" y="374"/>
@@ -347,21 +347,21 @@ local_fwd = fwd</label>
 		<transition>
 			<source ref="id22"/>
 			<target ref="id11"/>
-			<label kind="guard" x="782" y="450">fwd</label>
+			<label kind="guard" x="782" y="450">fwd or !motC</label>
 			<label kind="assignment" x="748" y="433">time = 0</label>
 			<nail x="816" y="467"/>
 		</transition>
 		<transition>
 			<source ref="id24"/>
 			<target ref="id11"/>
-			<label kind="guard" x="646" y="416">!fwd</label>
+			<label kind="guard" x="646" y="416">!fwd or !motC</label>
 			<label kind="assignment" x="646" y="399">time = 0</label>
 			<nail x="646" y="442"/>
 		</transition>
 		<transition>
 			<source ref="id23"/>
 			<target ref="id11"/>
-			<label kind="guard" x="493" y="399">!fwd</label>
+			<label kind="guard" x="493" y="399">!fwd or !motC</label>
 			<label kind="assignment" x="493" y="416">time = 0</label>
 			<nail x="493" y="314"/>
 			<nail x="501" y="382"/>
@@ -369,7 +369,7 @@ local_fwd = fwd</label>
 		<transition>
 			<source ref="id10"/>
 			<target ref="id11"/>
-			<label kind="guard" x="425" y="374">fwd</label>
+			<label kind="guard" x="425" y="374">fwd or !motC</label>
 			<label kind="assignment" x="391" y="391">time = 0</label>
 		</transition>
 		<transition>
@@ -389,17 +389,17 @@ time &gt;= 24</label>
 		<transition>
 			<source ref="id27"/>
 			<target ref="id11"/>
-			<label kind="guard" x="263" y="425">!fwd</label>
+			<label kind="guard" x="263" y="425">!fwd  or !motC</label>
 			<label kind="assignment" x="297" y="425">time = 0</label>
 			<nail x="255" y="442"/>
 		</transition>
 		<transition>
 			<source ref="id21"/>
 			<target ref="id11"/>
-			<label kind="guard" x="110" y="442">!fwd</label>
-			<label kind="assignment" x="144" y="442">time = 0</label>
-			<nail x="102" y="382"/>
-			<nail x="102" y="459"/>
+			<label kind="guard" x="102" y="425">!fwd or !motC</label>
+			<label kind="assignment" x="136" y="425">time = 0</label>
+			<nail x="94" y="365"/>
+			<nail x="94" y="442"/>
 		</transition>
 		<transition>
 			<source ref="id13"/>
@@ -692,7 +692,8 @@ time &gt;= 24</label>
 			<source ref="id36"/>
 			<target ref="id38"/>
 			<label kind="synchronisation" x="59" y="165">motor_C_reverseDirection?</label>
-			<label kind="assignment" x="59" y="182">fwd = true</label>
+			<label kind="assignment" x="59" y="182">fwd = true,
+motC = true</label>
 			<nail x="59" y="229"/>
 			<nail x="59" y="136"/>
 		</transition>
@@ -700,7 +701,8 @@ time &gt;= 24</label>
 			<source ref="id38"/>
 			<target ref="id36"/>
 			<label kind="synchronisation" x="-246" y="161">motor_C_reverseDirection?</label>
-			<label kind="assignment" x="-246" y="178">fwd = false</label>
+			<label kind="assignment" x="-246" y="178">fwd = false,
+motC = true</label>
 			<nail x="-59" y="136"/>
 			<nail x="-59" y="229"/>
 		</transition>
@@ -708,6 +710,7 @@ time &gt;= 24</label>
 			<source ref="id38"/>
 			<target ref="id37"/>
 			<label kind="synchronisation" x="68" y="51">motor_c_stop?</label>
+			<label kind="assignment" x="68" y="34">motC = false</label>
 			<nail x="68" y="85"/>
 			<nail x="68" y="17"/>
 		</transition>
@@ -715,7 +718,8 @@ time &gt;= 24</label>
 			<source ref="id37"/>
 			<target ref="id38"/>
 			<label kind="synchronisation" x="-195" y="42">motor_c_forward?</label>
-			<label kind="assignment" x="-195" y="59">fwd = true</label>
+			<label kind="assignment" x="-195" y="59">fwd = true,
+motC = true</label>
 			<nail x="-68" y="17"/>
 			<nail x="-68" y="85"/>
 		</transition>
@@ -992,6 +996,7 @@ time = 0</label>
 		<declaration>
 int var;</declaration>
 		<location id="id58" x="-212" y="76">
+			<name x="-374" y="34">activated_pre</name>
 		</location>
 		<location id="id59" x="119" y="144">
 			<name x="136" y="135">activated</name>
