@@ -185,8 +185,9 @@ time = 0</label>
 			<source ref="id18"/>
 			<target ref="id0"/>
 			<label kind="synchronisation" x="280" y="-578">user_set_bag_left[id]?</label>
-			<label kind="assignment" x="263" y="-561">time = 0,
-bag_on_a1 = true</label>
+			<label kind="assignment" x="221" y="-578">time = 0,
+bag_on_a1 = true,
+handling_time = 0</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
@@ -1148,7 +1149,6 @@ urgent broadcast chan go; </declaration>
 		<transition>
 			<source ref="id66"/>
 			<target ref="id65"/>
-			<label kind="guard" x="-34" y="0">counter == BAGS</label>
 			<label kind="synchronisation" x="-25" y="17">user_set_bag_left[9]!</label>
 			<label kind="assignment" x="-34" y="34">time = 0</label>
 			<nail x="-34" y="0"/>
