@@ -1,0 +1,1246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+
+const int SENS_ADV = 20;
+
+const int BLOCKED = 70;
+const int YELLOW = 60;
+const int BLACK = 45;
+const int PARTIAL = 65;
+
+const int BAGS = 10;
+
+chan user_set_bag[BAGS];
+chan user_set_bag_left[BAGS];
+
+typedef int[0, BAGS-1] bag_id;
+typedef int[0, BAGS-2] bag_id_reduced0;
+typedef int[1, BAGS-1] bag_id_reduced1;
+
+int bag_color[BAGS]  := {55,55,40,40,40,55,40,55,55,55};
+
+chan sens_activate, sens_passivate;
+broadcast chan motor_C_reverseDirection,motor_A_forward,motor_B_forward;
+urgent chan motor_a_stop,motor_b_stop;
+chan motor_c_forward, motor_c_stop;
+
+chan sens_read_value;
+
+chan  bag_to_sensor, bag_to_sensor1;
+
+broadcast chan bag_to_sens1_broad, bag_to_sens_broad;
+
+int sens_val, sens_val_bag;
+int sens_val1, sens_val_bag1;
+
+
+bool fwd, motC, belt_a, belt_b;
+
+bool bag_on_a = false, bag_on_a1 = false, sensor_activated = false;
+
+bool belt_b_waiting = false;
+
+broadcast chan a_wait, b_wait;
+
+clock global_time;</declaration>
+	<template>
+		<name x="5" y="5">Bag</name>
+		<parameter>bag_id id</parameter>
+		<declaration>// Place local declarations here.
+clock time;
+
+int bag_col;
+
+bool local_fwd = false;
+
+urgent broadcast chan go;
+
+clock handling_time;</declaration>
+		<location id="id0" x="365" y="-493">
+			<name x="305" y="-527">a1placed</name>
+			<urgent/>
+		</location>
+		<location id="id1" x="272" y="-374">
+			<name x="229" y="-416">a1pre</name>
+			<label kind="invariant" x="195" y="-399">time &lt;= 2</label>
+		</location>
+		<location id="id2" x="272" y="-246">
+			<name x="289" y="-280">a1</name>
+			<label kind="invariant" x="178" y="-280">time &lt;= 12</label>
+		</location>
+		<location id="id3" x="272" y="-102">
+			<name x="212" y="-127">a1post</name>
+			<label kind="invariant" x="195" y="-93">time &lt;= 2</label>
+		</location>
+		<location id="id4" x="272" y="-8">
+			<name x="280" y="-34">b1</name>
+			<label kind="invariant" x="289" y="-8">time &lt;= 15</label>
+		</location>
+		<location id="id5" x="170" y="102">
+			<name x="102" y="68">b1_stop1</name>
+		</location>
+		<location id="id6" x="272" y="102">
+			<name x="289" y="85">b1_stop</name>
+			<label kind="invariant" x="289" y="102">time &lt;=0</label>
+		</location>
+		<location id="id7" x="272" y="195">
+			<name x="289" y="178">b1_run</name>
+			<label kind="invariant" x="187" y="195">time &lt;= 9</label>
+		</location>
+		<location id="id8" x="646" y="195">
+			<name x="636" y="161">b2_run</name>
+			<label kind="invariant" x="663" y="187">time &lt;= 9</label>
+		</location>
+		<location id="id9" x="450" y="-110">
+			<name x="391" y="-170">ERROR_TOP</name>
+		</location>
+		<location id="id10" x="459" y="323">
+			<name x="449" y="289">f2</name>
+			<label kind="invariant" x="425" y="331">time &lt;= 33</label>
+		</location>
+		<location id="id11" x="459" y="467">
+			<name x="416" y="433">ERROR_DIR</name>
+		</location>
+		<location id="id12" x="756" y="102">
+			<name x="746" y="68">b2_stop2</name>
+		</location>
+		<location id="id13" x="646" y="102">
+			<name x="654" y="76">b2_stop</name>
+			<label kind="invariant" x="561" y="93">time &lt;=0</label>
+		</location>
+		<location id="id14" x="459" y="510">
+			<name x="416" y="484">ERROR_COL</name>
+		</location>
+		<location id="id15" x="535" y="-493">
+			<name x="544" y="-519">a2placed</name>
+			<urgent/>
+		</location>
+		<location id="id16" x="646" y="-246">
+			<name x="652" y="-272">a2</name>
+			<label kind="invariant" x="671" y="-272">time &lt;= 12</label>
+		</location>
+		<location id="id17" x="646" y="-102">
+			<name x="586" y="-119">a2post</name>
+			<label kind="invariant" x="552" y="-102">time &lt;=2</label>
+		</location>
+		<location id="id18" x="450" y="-603">
+			<name x="433" y="-637">start</name>
+		</location>
+		<location id="id19" x="943" y="272">
+			<name x="933" y="238">B</name>
+		</location>
+		<location id="id20" x="-17" y="272">
+			<name x="-27" y="238">A</name>
+		</location>
+		<location id="id21" x="102" y="272">
+			<name x="92" y="238">e1</name>
+			<label kind="invariant" x="68" y="289">time &lt;= 12</label>
+		</location>
+		<location id="id22" x="816" y="272">
+			<name x="806" y="238">e2</name>
+			<label kind="invariant" x="806" y="289">time &lt;= 12</label>
+		</location>
+		<location id="id23" x="459" y="272">
+			<name x="449" y="238">f1</name>
+			<label kind="invariant" x="425" y="280">time &lt;= 33</label>
+		</location>
+		<location id="id24" x="646" y="340">
+			<name x="636" y="306">d2</name>
+			<label kind="invariant" x="612" y="357">time &lt;= 24</label>
+		</location>
+		<location id="id25" x="646" y="272">
+			<name x="620" y="246">c2</name>
+			<label kind="invariant" x="620" y="280">time &lt;= 28</label>
+		</location>
+		<location id="id26" x="646" y="-8">
+			<name x="629" y="-42">b2</name>
+			<label kind="invariant" x="654" y="0">time &lt;= 15</label>
+		</location>
+		<location id="id27" x="255" y="340">
+			<name x="245" y="306">d1</name>
+			<label kind="invariant" x="221" y="348">time &lt;= 24</label>
+		</location>
+		<location id="id28" x="272" y="272">
+			<name x="255" y="238">c1</name>
+			<label kind="invariant" x="229" y="289">time &lt;= 28</label>
+		</location>
+		<location id="id29" x="646" y="-373">
+			<name x="620" y="-416">a2pre</name>
+			<label kind="invariant" x="612" y="-399">time &lt;=2</label>
+		</location>
+		<init ref="id18"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="323" y="-442">belt_a</label>
+			<label kind="synchronisation" x="195" y="-484">bag_to_sens1_broad!</label>
+			<label kind="assignment" x="144" y="-467">bag_col = PARTIAL,
+sens_val_bag = bag_col,
+time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="280" y="-578">user_set_bag_left[id]?</label>
+			<label kind="assignment" x="263" y="-561">time = 0,
+bag_on_a1 = true</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id9"/>
+			<label kind="guard" x="323" y="-323">!belt_a</label>
+			<label kind="assignment" x="331" y="-306">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="85" y="-382">bag_to_sensor1?</label>
+			<label kind="assignment" x="34" y="-365">sens_val_bag = bag_col</label>
+			<nail x="212" y="-382"/>
+			<nail x="212" y="-357"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="guard" x="195" y="-331">time == 2</label>
+			<label kind="synchronisation" x="119" y="-297">bag_to_sens1_broad!</label>
+			<label kind="assignment" x="17" y="-331">bag_col = bag_color[id],
+time = 0, sens_val_bag = bag_col</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="85" y="-119">bag_to_sensor1?</label>
+			<label kind="assignment" x="25" y="-102">sens_val_bag = bag_col</label>
+			<nail x="212" y="-110"/>
+			<nail x="212" y="-85"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id9"/>
+			<label kind="guard" x="305" y="-195">!belt_a</label>
+			<label kind="assignment" x="297" y="-178">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id9"/>
+			<label kind="guard" x="323" y="-76">!belt_a</label>
+			<label kind="assignment" x="348" y="-59">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id9"/>
+			<label kind="guard" x="314" y="-136">!belt_a</label>
+			<label kind="assignment" x="306" y="-119">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="85" y="-263">bag_to_sensor1?</label>
+			<label kind="assignment" x="17" y="-246">sens_val_bag1 = bag_col</label>
+			<nail x="204" y="-255"/>
+			<nail x="204" y="-229"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="guard" x="178" y="-212">time == 12</label>
+			<label kind="synchronisation" x="136" y="-195">bag_to_sens1_broad!</label>
+			<label kind="assignment" x="0" y="-195">bag_col = PARTIAL,
+time = 0, sens_val_bag = bag_col</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="34" y="-34">bag_to_sens1_broad!</label>
+			<label kind="assignment" x="25" y="-85">bag_col = BLOCKED,
+time = 0,sens_val_bag1 = bag_col,
+bag_on_a1 = false</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id6"/>
+			<label kind="guard" x="272" y="8">time == 15</label>
+			<label kind="synchronisation" x="272" y="25">a_wait!</label>
+			<label kind="assignment" x="272" y="42">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="110" y="170">motor_A_forward?</label>
+			<label kind="assignment" x="110" y="136">time = 0,
+local_fwd = fwd</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="187" y="85">not belt_a</label>
+			<label kind="assignment" x="188" y="102">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id7"/>
+			<label kind="guard" x="280" y="119">belt_a</label>
+			<label kind="assignment" x="280" y="136">time = 0,
+local_fwd = fwd</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id28"/>
+			<label kind="guard" x="280" y="212">time == 9</label>
+			<label kind="assignment" x="280" y="229">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id25"/>
+			<label kind="guard" x="561" y="212">time == 9</label>
+			<label kind="assignment" x="569" y="229">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id8"/>
+			<label kind="synchronisation" x="714" y="170">motor_B_forward?</label>
+			<label kind="assignment" x="714" y="136">time = 0,
+local_fwd = fwd</label>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id8"/>
+			<label kind="guard" x="595" y="136">belt_b</label>
+			<label kind="assignment" x="518" y="136">time = 0,
+local_fwd = fwd</label>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id9"/>
+			<label kind="guard" x="467" y="-76">!belt_b</label>
+			<label kind="assignment" x="467" y="-59">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id9"/>
+			<label kind="guard" x="518" y="-136">!belt_b</label>
+			<label kind="assignment" x="518" y="-119">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id9"/>
+			<label kind="guard" x="569" y="-195">!belt_b</label>
+			<label kind="assignment" x="544" y="-178">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id9"/>
+			<label kind="guard" x="476" y="-229">!belt_b</label>
+			<label kind="assignment" x="459" y="-212">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id11"/>
+			<label kind="guard" x="510" y="374">fwd != local_fwd or !motC</label>
+			<label kind="assignment" x="569" y="408">time = 0</label>
+			<nail x="595" y="289"/>
+			<nail x="603" y="374"/>
+			<nail x="552" y="433"/>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id11"/>
+			<label kind="guard" x="714" y="450">fwd or !motC</label>
+			<label kind="assignment" x="748" y="433">time = 0</label>
+			<nail x="816" y="467"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id11"/>
+			<label kind="guard" x="646" y="416">!fwd or !motC</label>
+			<label kind="assignment" x="646" y="399">time = 0</label>
+			<nail x="646" y="442"/>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id11"/>
+			<label kind="guard" x="493" y="399">!fwd or !motC</label>
+			<label kind="assignment" x="493" y="416">time = 0</label>
+			<nail x="493" y="314"/>
+			<nail x="501" y="382"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id11"/>
+			<label kind="guard" x="425" y="374">fwd or !motC</label>
+			<label kind="assignment" x="391" y="391">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id24"/>
+			<label kind="guard" x="518" y="314">!fwd and 
+time &gt;= 27</label>
+			<label kind="assignment" x="527" y="340">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id10"/>
+			<label kind="guard" x="323" y="255">!fwd and
+time &gt;= 24</label>
+			<label kind="assignment" x="331" y="280">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id11"/>
+			<label kind="guard" x="263" y="425">!fwd  or !motC</label>
+			<label kind="assignment" x="297" y="425">time = 0</label>
+			<nail x="255" y="442"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id11"/>
+			<label kind="guard" x="102" y="408">!fwd or !motC</label>
+			<label kind="assignment" x="136" y="425">time = 0</label>
+			<nail x="94" y="365"/>
+			<nail x="94" y="442"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id12"/>
+			<label kind="guard" x="654" y="119">not belt_b</label>
+			<label kind="assignment" x="663" y="102">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id13"/>
+			<label kind="guard" x="561" y="25">time == 15</label>
+			<label kind="synchronisation" x="654" y="33">b_wait!</label>
+			<label kind="assignment" x="578" y="42">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id14"/>
+			<label kind="guard" x="0" y="493">bag_color[id] &lt;50 or bag_color[id] &gt; 60</label>
+			<label kind="assignment" x="1" y="509">time = 0</label>
+			<nail x="-17" y="510"/>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id14"/>
+			<label kind="guard" x="654" y="493">bag_color[id] &lt; 35 or bag_color[id] &gt; 45</label>
+			<label kind="assignment" x="654" y="510">time = 0</label>
+			<nail x="943" y="510"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="705" y="-119">bag_to_sensor?</label>
+			<label kind="assignment" x="705" y="-102">sens_val_bag = bag_col</label>
+			<nail x="697" y="-110"/>
+			<nail x="697" y="-85"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="705" y="-262">bag_to_sensor?</label>
+			<label kind="assignment" x="705" y="-246">sens_val_bag = bag_col</label>
+			<nail x="705" y="-254"/>
+			<nail x="705" y="-229"/>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id29"/>
+			<label kind="synchronisation" x="714" y="-398">bag_to_sensor?</label>
+			<label kind="assignment" x="714" y="-381">sens_val_bag = bag_col</label>
+			<nail x="706" y="-398"/>
+			<nail x="706" y="-364"/>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id29"/>
+			<label kind="guard" x="544" y="-433">belt_b</label>
+			<label kind="synchronisation" x="561" y="-484">bag_to_sens_broad!</label>
+			<label kind="assignment" x="603" y="-467">bag_col = PARTIAL,
+sens_val_bag = bag_col,
+time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="476" y="-586">user_set_bag[id]?</label>
+			<label kind="assignment" x="518" y="-569">time = 0,
+bag_on_a = true,
+handling_time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id26"/>
+			<label kind="guard" x="672" y="-72">time == 2</label>
+			<label kind="synchronisation" x="816" y="-59">bag_to_sens_broad!</label>
+			<label kind="assignment" x="663" y="-59">bag_col = BLOCKED,
+time = 0,sens_val_bag = bag_col,
+bag_on_a = false</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id17"/>
+			<label kind="guard" x="646" y="-212">time == 12</label>
+			<label kind="synchronisation" x="646" y="-170">bag_to_sens_broad!</label>
+			<label kind="assignment" x="646" y="-203">bag_col = PARTIAL,
+time = 0,sens_val_bag = bag_col</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id16"/>
+			<label kind="guard" x="824" y="-340">time == 2</label>
+			<label kind="synchronisation" x="646" y="-306">bag_to_sens_broad!</label>
+			<label kind="assignment" x="646" y="-340">bag_col = bag_color[id],
+time = 0, sens_val_bag = bag_col</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id19"/>
+			<label kind="guard" x="834" y="238">!fwd and
+time &gt;= 10</label>
+			<label kind="assignment" x="834" y="272">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id20"/>
+			<label kind="guard" x="-8" y="229">fwd and
+time &gt;= 10</label>
+			<label kind="assignment" x="1" y="272">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id21"/>
+			<label kind="guard" x="153" y="314">fwd and
+time &gt;= 23</label>
+			<label kind="assignment" x="153" y="348">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id27"/>
+			<label kind="guard" x="340" y="314">fwd and
+time &gt;= 27</label>
+			<label kind="assignment" x="340" y="348">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id22"/>
+			<label kind="guard" x="705" y="314">!fwd and
+time &gt;= 23</label>
+			<label kind="assignment" x="705" y="348">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id23"/>
+			<label kind="guard" x="493" y="238">fwd and
+time &gt;= 24</label>
+			<label kind="assignment" x="527" y="272">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id21"/>
+			<label kind="guard" x="153" y="238">fwd and
+time &gt;= 24</label>
+			<label kind="assignment" x="153" y="272">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id22"/>
+			<label kind="guard" x="688" y="238">!fwd and
+time &gt;= 24</label>
+			<label kind="assignment" x="688" y="272">time = 0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Motor_B</name>
+		<declaration>urgent broadcast chan run;</declaration>
+		<location id="id30" x="178" y="0">
+			<name x="187" y="-25">wait_stop</name>
+		</location>
+		<location id="id31" x="0" y="0">
+			<name x="-17" y="-34">Stop</name>
+		</location>
+		<location id="id32" x="0" y="102">
+			<name x="-25" y="119">Forward</name>
+		</location>
+		<init ref="id31"/>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="93" y="42">motor_B_forward?</label>
+			<label kind="assignment" x="76" y="59">belt_b = true</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="85" y="-42">b_wait?</label>
+			<label kind="assignment" x="85" y="-59">belt_b = false</label>
+			<nail x="102" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id30"/>
+			<label kind="synchronisation" x="229" y="93">motor_b_stop?</label>
+			<nail x="161" y="119"/>
+			<nail x="246" y="76"/>
+			<nail x="212" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id31"/>
+			<target ref="id31"/>
+			<label kind="synchronisation" x="-72" y="-71">motor_b_stop?</label>
+			<label kind="assignment" x="-93" y="-102">belt_b = false</label>
+			<nail x="4" y="-37"/>
+			<nail x="4" y="-54"/>
+			<nail x="-46" y="-54"/>
+			<nail x="-46" y="-37"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="-51" y="144">motor_B_forward?</label>
+			<label kind="assignment" x="-51" y="161">belt_b = true</label>
+			<nail x="-42" y="127"/>
+			<nail x="-34" y="144"/>
+			<nail x="34" y="144"/>
+			<nail x="42" y="127"/>
+		</transition>
+		<transition>
+			<source ref="id31"/>
+			<target ref="id32"/>
+			<label kind="synchronisation" x="-203" y="34">motor_B_forward?</label>
+			<label kind="assignment" x="-195" y="51">belt_b = true</label>
+			<nail x="-76" y="9"/>
+			<nail x="-76" y="77"/>
+		</transition>
+	</template>
+	<template>
+		<name>Motor_A</name>
+		<location id="id33" x="178" y="0">
+			<name x="187" y="-25">wait_stop</name>
+		</location>
+		<location id="id34" x="0" y="0">
+			<name x="-17" y="-34">Stop</name>
+		</location>
+		<location id="id35" x="0" y="102">
+			<name x="-25" y="119">Forward</name>
+		</location>
+		<init ref="id34"/>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="93" y="42">motor_A_forward?</label>
+			<label kind="assignment" x="76" y="59">belt_a = true</label>
+		</transition>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="85" y="-42">a_wait?</label>
+			<label kind="assignment" x="85" y="-59">belt_a = false</label>
+			<nail x="102" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id35"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="229" y="93">motor_a_stop?</label>
+			<nail x="161" y="119"/>
+			<nail x="246" y="76"/>
+			<nail x="212" y="0"/>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id34"/>
+			<label kind="synchronisation" x="-72" y="-71">motor_a_stop?</label>
+			<label kind="assignment" x="-93" y="-102">belt_a = false</label>
+			<nail x="4" y="-37"/>
+			<nail x="4" y="-54"/>
+			<nail x="-46" y="-54"/>
+			<nail x="-46" y="-37"/>
+		</transition>
+		<transition>
+			<source ref="id35"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="-51" y="144">motor_A_forward?</label>
+			<label kind="assignment" x="-51" y="161">belt_a = true</label>
+			<nail x="-42" y="127"/>
+			<nail x="-34" y="144"/>
+			<nail x="34" y="144"/>
+			<nail x="42" y="127"/>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id35"/>
+			<label kind="synchronisation" x="-203" y="34">motor_A_forward?</label>
+			<label kind="assignment" x="-195" y="51">belt_a = true</label>
+			<nail x="-76" y="9"/>
+			<nail x="-76" y="77"/>
+		</transition>
+	</template>
+	<template>
+		<name>Motor_C</name>
+		<location id="id36" x="0" y="238">
+			<name x="-34" y="204">Backward</name>
+		</location>
+		<location id="id37" x="0" y="0">
+			<name x="-17" y="-34">Stop</name>
+		</location>
+		<location id="id38" x="0" y="102">
+			<name x="-25" y="68">Forward</name>
+		</location>
+		<init ref="id37"/>
+		<transition>
+			<source ref="id36"/>
+			<target ref="id38"/>
+			<label kind="synchronisation" x="59" y="165">motor_C_reverseDirection?</label>
+			<label kind="assignment" x="59" y="182">fwd = true,
+motC = true</label>
+			<nail x="59" y="229"/>
+			<nail x="59" y="136"/>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id36"/>
+			<label kind="synchronisation" x="-246" y="161">motor_C_reverseDirection?</label>
+			<label kind="assignment" x="-246" y="178">fwd = false,
+motC = true</label>
+			<nail x="-59" y="136"/>
+			<nail x="-59" y="229"/>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id37"/>
+			<label kind="synchronisation" x="68" y="51">motor_c_stop?</label>
+			<label kind="assignment" x="68" y="34">motC = false</label>
+			<nail x="68" y="85"/>
+			<nail x="68" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id37"/>
+			<target ref="id38"/>
+			<label kind="synchronisation" x="-195" y="42">motor_c_forward?</label>
+			<label kind="assignment" x="-195" y="59">fwd = true,
+motC = true</label>
+			<nail x="-68" y="17"/>
+			<nail x="-68" y="85"/>
+		</transition>
+	</template>
+	<template>
+		<name>Controller</name>
+		<declaration>clock time, time_bag;
+
+bool dirA, dirA_old, destA;
+
+int sens_val_local;
+
+bool run_once = false;
+
+urgent broadcast chan run;</declaration>
+		<location id="id39" x="493" y="442">
+			<committed/>
+		</location>
+		<location id="id40" x="238" y="417">
+			<label kind="invariant" x="144" y="408">time &lt;= 60</label>
+		</location>
+		<location id="id41" x="459" y="340">
+			<label kind="invariant" x="476" y="331">time_bag &lt;= 60</label>
+		</location>
+		<location id="id42" x="476" y="221">
+		</location>
+		<location id="id43" x="0" y="-263">
+			<committed/>
+		</location>
+		<location id="id44" x="-238" y="136">
+			<name x="-366" y="127">Wait_color_valid</name>
+			<label kind="invariant" x="-332" y="144">time &lt;= 8</label>
+		</location>
+		<location id="id45" x="0" y="-34">
+			<name x="17" y="-51">activated_sensor</name>
+			<committed/>
+		</location>
+		<location id="id46" x="952" y="212">
+			<label kind="invariant" x="960" y="187">time &lt;= 12</label>
+		</location>
+		<location id="id47" x="773" y="476">
+			<committed/>
+		</location>
+		<location id="id48" x="425" y="510">
+			<committed/>
+		</location>
+		<location id="id49" x="773" y="212">
+			<name x="722" y="178">update_done</name>
+			<committed/>
+		</location>
+		<location id="id50" x="433" y="246">
+			<name x="382" y="221">Sleep</name>
+			<committed/>
+		</location>
+		<location id="id51" x="476" y="136">
+			<name x="433" y="102">Decide_stop_not</name>
+			<committed/>
+		</location>
+		<location id="id52" x="348" y="136">
+			<name x="297" y="102">Wait_advance</name>
+			<label kind="invariant" x="306" y="153">time &lt;=20</label>
+		</location>
+		<location id="id53" x="204" y="136">
+			<name x="187" y="102">Det_dest</name>
+			<committed/>
+		</location>
+		<location id="id54" x="17" y="136">
+			<name x="-34" y="102">read_sens</name>
+			<committed/>
+		</location>
+		<location id="id55" x="0" y="42">
+			<name x="17" y="33">poll</name>
+			<label kind="invariant" x="-10" y="59">time &lt;= 1</label>
+		</location>
+		<location id="id56" x="0" y="-102">
+			<name x="17" y="-119">Idle</name>
+			<committed/>
+		</location>
+		<location id="id57" x="0" y="-357">
+			<name x="-10" y="-391">Init</name>
+			<committed/>
+		</location>
+		<location id="id58" x="0" y="-187">
+			<committed/>
+		</location>
+		<init ref="id57"/>
+		<transition>
+			<source ref="id43"/>
+			<target ref="id58"/>
+			<label kind="synchronisation" x="8" y="-246">motor_A_forward!</label>
+			<label kind="assignment" x="8" y="-229">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id58"/>
+			<target ref="id56"/>
+			<label kind="synchronisation" x="8" y="-178">motor_c_forward!</label>
+			<label kind="assignment" x="8" y="-153">time = 0,
+time_bag = 0</label>
+		</transition>
+		<transition>
+			<source ref="id50"/>
+			<target ref="id48"/>
+			<label kind="guard" x="629" y="297">time_bag &gt;= 120
+and run_once</label>
+			<label kind="assignment" x="654" y="331">time = 0</label>
+			<nail x="620" y="314"/>
+			<nail x="680" y="391"/>
+			<nail x="595" y="442"/>
+		</transition>
+		<transition>
+			<source ref="id50"/>
+			<target ref="id40"/>
+			<label kind="guard" x="0" y="340">time_bag &gt;= 60 
+and run_once</label>
+			<label kind="assignment" x="42" y="374">time = 0</label>
+			<nail x="119" y="340"/>
+			<nail x="118" y="383"/>
+		</transition>
+		<transition>
+			<source ref="id39"/>
+			<target ref="id48"/>
+			<label kind="assignment" x="433" y="459">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id41"/>
+			<target ref="id39"/>
+			<label kind="guard" x="484" y="365">dirA_old == true and
+time_bag &gt;= 60</label>
+			<label kind="assignment" x="493" y="399">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id40"/>
+			<target ref="id48"/>
+			<label kind="guard" x="314" y="433">time &gt;= 60</label>
+			<label kind="assignment" x="340" y="450">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id41"/>
+			<target ref="id40"/>
+			<label kind="guard" x="246" y="331">dirA_old == false
+and time_bag &gt;=60</label>
+			<label kind="assignment" x="289" y="365">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id50"/>
+			<target ref="id41"/>
+			<label kind="guard" x="450" y="280">run_once</label>
+			<label kind="assignment" x="459" y="297">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id42"/>
+			<target ref="id50"/>
+			<label kind="synchronisation" x="459" y="229">motor_b_stop!</label>
+		</transition>
+		<transition>
+			<source ref="id51"/>
+			<target ref="id42"/>
+			<label kind="guard" x="484" y="170">dirA != destA</label>
+			<label kind="assignment" x="484" y="187">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id57"/>
+			<target ref="id43"/>
+			<label kind="synchronisation" x="17" y="-348">motor_B_forward!</label>
+			<label kind="assignment" x="17" y="-331">time = 0,
+dirA = true,
+time_bag = 0</label>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id54"/>
+			<label kind="guard" x="-127" y="170">time == 8</label>
+			<label kind="synchronisation" x="-170" y="136">sens_read_value?</label>
+			<label kind="assignment" x="-204" y="153">sens_val_local = sens_val,
+time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id55"/>
+			<target ref="id44"/>
+			<label kind="guard" x="-272" y="59">sens_val_local &lt;= BLOCKED</label>
+			<label kind="assignment" x="-187" y="76">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id55"/>
+			<target ref="id45"/>
+			<label kind="guard" x="-255" y="0">sens_val_local &gt; BLOCKED
+and time == 1</label>
+			<label kind="assignment" x="-136" y="-17">time = 0</label>
+			<nail x="-68" y="17"/>
+			<nail x="-68" y="-17"/>
+		</transition>
+		<transition>
+			<source ref="id45"/>
+			<target ref="id55"/>
+			<label kind="synchronisation" x="8" y="-25">sens_read_value?</label>
+			<label kind="assignment" x="8" y="-8">time = 0,
+sens_val_local = sens_val</label>
+		</transition>
+		<transition>
+			<source ref="id56"/>
+			<target ref="id45"/>
+			<label kind="synchronisation" x="-110" y="-85">sens_activate!</label>
+			<label kind="assignment" x="-68" y="-68">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id47"/>
+			<target ref="id49"/>
+			<label kind="synchronisation" x="782" y="297">motor_B_forward!</label>
+			<label kind="assignment" x="782" y="314">time = 0</label>
+			<nail x="773" y="357"/>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id56"/>
+			<label kind="guard" x="697" y="-25">time == 12</label>
+			<label kind="assignment" x="697" y="-8">time = 0</label>
+			<nail x="875" y="-34"/>
+		</transition>
+		<transition>
+			<source ref="id49"/>
+			<target ref="id46"/>
+			<label kind="assignment" x="782" y="221">time_bag = 0, time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id48"/>
+			<target ref="id47"/>
+			<label kind="synchronisation" x="569" y="459">motor_C_reverseDirection!</label>
+			<label kind="assignment" x="561" y="476">dirA_old = dirA,
+dirA = destA,
+time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id50"/>
+			<target ref="id48"/>
+			<label kind="guard" x="-144" y="332">run_once == false</label>
+			<label kind="synchronisation" x="-68" y="357">run!</label>
+			<label kind="assignment" x="-136" y="348">run_once = true,
+time = 0</label>
+			<nail x="-17" y="331"/>
+			<nail x="-17" y="391"/>
+			<nail x="-17" y="391"/>
+		</transition>
+		<transition>
+			<source ref="id51"/>
+			<target ref="id49"/>
+			<label kind="guard" x="603" y="119">dirA == destA</label>
+			<label kind="assignment" x="603" y="136">time= 0,
+run_once = true</label>
+		</transition>
+		<transition>
+			<source ref="id52"/>
+			<target ref="id51"/>
+			<label kind="guard" x="365" y="119">time == 20</label>
+			<label kind="assignment" x="366" y="136">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id53"/>
+			<target ref="id52"/>
+			<label kind="synchronisation" x="221" y="119">sens_passivate!</label>
+			<label kind="assignment" x="222" y="136">time = 0</label>
+		</transition>
+		<transition>
+			<source ref="id54"/>
+			<target ref="id53"/>
+			<label kind="guard" x="51" y="170">sens_val_local &gt; BLACK</label>
+			<label kind="assignment" x="59" y="187">destA = true,
+time = 0</label>
+			<nail x="68" y="170"/>
+			<nail x="153" y="170"/>
+		</transition>
+		<transition>
+			<source ref="id54"/>
+			<target ref="id53"/>
+			<label kind="guard" x="51" y="85">sens_val_local &lt;= BLACK</label>
+			<label kind="assignment" x="59" y="102">destA = false,
+time = 0</label>
+			<nail x="59" y="102"/>
+			<nail x="153" y="102"/>
+		</transition>
+	</template>
+	<template>
+		<name>Sensor</name>
+		<declaration>
+int var;</declaration>
+		<location id="id59" x="-331" y="263">
+			<name x="-425" y="229">activated_pre</name>
+		</location>
+		<location id="id60" x="93" y="255">
+			<name x="110" y="246">activated</name>
+		</location>
+		<location id="id61" x="-161" y="-8">
+			<name x="-171" y="-42">Idle</name>
+		</location>
+		<init ref="id61"/>
+		<transition>
+			<source ref="id59"/>
+			<target ref="id61"/>
+			<label kind="synchronisation" x="-212" y="161">sens_passivate?</label>
+			<label kind="assignment" x="-221" y="178">sensor_activated = false</label>
+			<nail x="-220" y="179"/>
+		</transition>
+		<transition>
+			<source ref="id59"/>
+			<target ref="id59"/>
+			<label kind="synchronisation" x="-382" y="340">sens_read_value!</label>
+			<label kind="assignment" x="-382" y="357">sens_val =var</label>
+			<nail x="-374" y="340"/>
+			<nail x="-306" y="340"/>
+		</transition>
+		<transition>
+			<source ref="id59"/>
+			<target ref="id59"/>
+			<label kind="synchronisation" x="-561" y="246">bag_to_sens_broad?</label>
+			<label kind="assignment" x="-561" y="263">var = sens_val_bag</label>
+			<nail x="-416" y="246"/>
+			<nail x="-416" y="289"/>
+		</transition>
+		<transition>
+			<source ref="id61"/>
+			<target ref="id59"/>
+			<label kind="synchronisation" x="-349" y="59">sens_activate?</label>
+			<label kind="assignment" x="-408" y="59">var=80,
+sens_val = var,
+sensor_activated = true</label>
+		</transition>
+		<transition>
+			<source ref="id59"/>
+			<target ref="id60"/>
+			<label kind="synchronisation" x="-263" y="238">bag_to_sensor!</label>
+			<label kind="assignment" x="-280" y="263">var = sens_val_bag</label>
+		</transition>
+		<transition>
+			<source ref="id60"/>
+			<target ref="id61"/>
+			<label kind="synchronisation" x="-51" y="51">sens_passivate?</label>
+			<label kind="assignment" x="-51" y="68">sensor_activated = false</label>
+			<nail x="-51" y="85"/>
+			<nail x="-85" y="42"/>
+		</transition>
+		<transition>
+			<source ref="id60"/>
+			<target ref="id60"/>
+			<label kind="synchronisation" x="136" y="281">sens_read_value!</label>
+			<label kind="assignment" x="127" y="298">sens_val = var</label>
+			<nail x="144" y="280"/>
+			<nail x="110" y="323"/>
+		</transition>
+		<transition>
+			<source ref="id60"/>
+			<target ref="id60"/>
+			<label kind="synchronisation" x="-111" y="297">bag_to_sens_broad?</label>
+			<label kind="assignment" x="-102" y="314">var = sens_val_bag</label>
+			<nail x="25" y="280"/>
+			<nail x="25" y="280"/>
+			<nail x="51" y="322"/>
+		</transition>
+	</template>
+	<template>
+		<name>User</name>
+		<declaration>clock time;
+
+int counter = 0;
+
+urgent broadcast chan go; </declaration>
+		<location id="id62" x="-93" y="85">
+			<name x="-103" y="51">Finished</name>
+		</location>
+		<location id="id63" x="-93" y="-25">
+			<name x="-127" y="-8">Place_bag</name>
+			<urgent/>
+		</location>
+		<location id="id64" x="-93" y="-127">
+			<name x="-110" y="-170">Idle</name>
+		</location>
+		<init ref="id64"/>
+		<transition>
+			<source ref="id63"/>
+			<target ref="id62"/>
+			<label kind="guard" x="-34" y="0">counter == BAGS</label>
+			<label kind="synchronisation" x="-34" y="17">go!</label>
+			<label kind="assignment" x="-34" y="34">time = 0</label>
+			<nail x="-34" y="0"/>
+			<nail x="-34" y="68"/>
+		</transition>
+		<transition>
+			<source ref="id64"/>
+			<target ref="id63"/>
+			<label kind="guard" x="-34" y="-127">bag_on_a == false and
+sensor_activated == true</label>
+			<label kind="synchronisation" x="-34" y="-93">go!</label>
+			<label kind="assignment" x="-34" y="-76">time = 0</label>
+			<nail x="-42" y="-93"/>
+			<nail x="-42" y="-51"/>
+		</transition>
+		<transition>
+			<source ref="id63"/>
+			<target ref="id64"/>
+			<label kind="guard" x="-289" y="-102">counter &lt; 4</label>
+			<label kind="synchronisation" x="-306" y="-76">user_set_bag[counter]!</label>
+			<label kind="assignment" x="-374" y="-76">time = 0,
+counter = counter + 1</label>
+			<nail x="-144" y="-51"/>
+			<nail x="-144" y="-101"/>
+		</transition>
+	</template>
+	<template>
+		<name>User1</name>
+		<declaration>clock time;
+
+int counter = 5;
+
+urgent broadcast chan go; </declaration>
+		<location id="id65" x="-93" y="85">
+			<name x="-103" y="51">Finished</name>
+		</location>
+		<location id="id66" x="-93" y="-25">
+			<name x="-127" y="-8">Place_bag</name>
+			<urgent/>
+		</location>
+		<location id="id67" x="-93" y="-127">
+			<name x="-110" y="-170">Idle</name>
+		</location>
+		<init ref="id67"/>
+		<transition>
+			<source ref="id66"/>
+			<target ref="id65"/>
+			<label kind="guard" x="-34" y="0">counter == BAGS</label>
+			<label kind="synchronisation" x="-34" y="17">go!</label>
+			<label kind="assignment" x="-34" y="34">time = 0</label>
+			<nail x="-34" y="0"/>
+			<nail x="-34" y="68"/>
+		</transition>
+		<transition>
+			<source ref="id67"/>
+			<target ref="id66"/>
+			<label kind="guard" x="-34" y="-127">bag_on_a1 == false</label>
+			<label kind="synchronisation" x="-34" y="-93">go!</label>
+			<label kind="assignment" x="-34" y="-76">time = 0</label>
+			<nail x="-42" y="-93"/>
+			<nail x="-42" y="-51"/>
+		</transition>
+		<transition>
+			<source ref="id66"/>
+			<target ref="id67"/>
+			<label kind="guard" x="-289" y="-102">counter &lt; BAGS</label>
+			<label kind="synchronisation" x="-306" y="-76">user_set_bag_left[counter]!</label>
+			<label kind="assignment" x="-374" y="-76">time = 0,
+counter = counter + 1</label>
+			<nail x="-144" y="-51"/>
+			<nail x="-144" y="-101"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+//Process = Template();
+// List one or more processes to be composed into a system.
+system Controller, Sensor, Bag, User, User1, Motor_C, Motor_B, Motor_A;</system>
+	<queries>
+		<query>
+			<formula>A[] forall(i:bag_id) Bag(i).c2 imply not Motor_B.Stop
+			</formula>
+			<comment>When a bag is in position c2, the motorB will never be stopped.
+			</comment>
+		</query>
+		<query>
+			<formula>A[] forall(i:bag_id) forall(j:bag_id) (i == j) or (not ( Bag(i).c2 and Bag(j).d2) and not ( Bag(i).c2 and Bag(j).d2) )
+			</formula>
+			<comment>There will never be a bag at location c1/c2 and d1/d2 at the same time. That is, no collision.
+			</comment>
+		</query>
+		<query>
+			<formula>A[] forall(i:bag_id) Bag(i).c2 imply not Motor_B.Stop
+			</formula>
+			<comment>When a bag is in the turning section, Motor will be running.
+			</comment>
+		</query>
+		<query>
+			<formula>A[] forall(i:bag_id) not (Bag(i).ERROR_COL or Bag(i).ERROR_DIR or Bag(i).ERROR_TOP)
+			</formula>
+			<comment>For all states and for all bags, there will never be a bag that is in the error state.
+			</comment>
+		</query>
+		<query>
+			<formula>A[] Controller.read_sens imply Controller.sens_val_local &lt; 65
+			</formula>
+			<comment>When controller is in the read state, it will either have read black or yellow! Great!
+			</comment>
+		</query>
+		<query>
+			<formula>A&lt;&gt; forall(i:bag_id) Bag(i).A or Bag(i).B
+			</formula>
+			<comment>All bags will end up at either A or B at some point.
+			</comment>
+		</query>
+		<query>
+			<formula>A[] forall(i:bag_id_reduced0) not (
+(Bag(i+1).c1 and Bag(i).c1) or
+(Bag(i+1).c2 and Bag(i).c2) or 
+(Bag(i+1).d1 and Bag(i).d1) or 
+(Bag(i+1).d2 and Bag(i).d2) or
+(Bag(i+1).e1 and Bag(i).e1) or 
+(Bag(i+1).e2 and Bag(i).e2) or
+(Bag(i+1).f1 and Bag(i).f1) or 
+(Bag(i+1).f2 and Bag(i).f2) 
+)
+			</formula>
+			<comment>At no point in time on the lower belt, will there be two bags at the same position. Therefore, no collisions.
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; Bag(3).B
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] not deadlock
+			</formula>
+			<comment>There aren't any deadlocks
+			</comment>
+		</query>
+	</queries>
+</nta>
