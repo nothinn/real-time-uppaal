@@ -1100,7 +1100,7 @@ urgent broadcast chan go; </declaration>
 		<transition>
 			<source ref="id63"/>
 			<target ref="id62"/>
-			<label kind="guard" x="-34" y="0">counter == BAGS</label>
+			<label kind="guard" x="-34" y="0">counter == BAGS -1</label>
 			<label kind="synchronisation" x="-34" y="17">go!</label>
 			<label kind="assignment" x="-34" y="34">time = 0</label>
 			<nail x="-34" y="0"/>
@@ -1119,7 +1119,7 @@ sensor_activated == true</label>
 		<transition>
 			<source ref="id63"/>
 			<target ref="id64"/>
-			<label kind="guard" x="-289" y="-102">counter &lt; 4</label>
+			<label kind="guard" x="-289" y="-102">counter &lt; BAGS-1</label>
 			<label kind="synchronisation" x="-306" y="-76">user_set_bag[counter]!</label>
 			<label kind="assignment" x="-374" y="-76">time = 0,
 counter = counter + 1</label>
@@ -1149,7 +1149,7 @@ urgent broadcast chan go; </declaration>
 			<source ref="id66"/>
 			<target ref="id65"/>
 			<label kind="guard" x="-34" y="0">counter == BAGS</label>
-			<label kind="synchronisation" x="-34" y="17">go!</label>
+			<label kind="synchronisation" x="-25" y="17">user_set_bag_left[9]!</label>
 			<label kind="assignment" x="-34" y="34">time = 0</label>
 			<nail x="-34" y="0"/>
 			<nail x="-34" y="68"/>
@@ -1157,21 +1157,10 @@ urgent broadcast chan go; </declaration>
 		<transition>
 			<source ref="id67"/>
 			<target ref="id66"/>
-			<label kind="guard" x="-34" y="-127">bag_on_a1 == false</label>
-			<label kind="synchronisation" x="-34" y="-93">go!</label>
+			<label kind="guard" x="-34" y="-102">bag_on_a1 == false</label>
 			<label kind="assignment" x="-34" y="-76">time = 0</label>
 			<nail x="-42" y="-93"/>
 			<nail x="-42" y="-51"/>
-		</transition>
-		<transition>
-			<source ref="id66"/>
-			<target ref="id67"/>
-			<label kind="guard" x="-289" y="-102">counter &lt; BAGS</label>
-			<label kind="synchronisation" x="-306" y="-76">user_set_bag_left[counter]!</label>
-			<label kind="assignment" x="-374" y="-76">time = 0,
-counter = counter + 1</label>
-			<nail x="-144" y="-51"/>
-			<nail x="-144" y="-101"/>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
