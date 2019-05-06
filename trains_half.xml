@@ -2,11 +2,15 @@
 
 const int LIGHTS = 2;
 const int TRAINS = 2;
+const int SWITCHES = 1;
+
 
 typedef int[0,TRAINS-1] t_id;
 typedef int[0,LIGHTS-1] l_id;
+typedef int[0,SWITCHES-1] s_id;
 
-broadcast chan init_all;
+
+urgent broadcast chan init_all;
 
 //To find the next position, we need the current direction and position of the train.
 typedef struct{
@@ -18,8 +22,8 @@ typedef struct{
 
 typedef struct{
 	bool switch; //If there is a switch or not
-	bool switchDir; //Direction of the switch. True means there are 
-	bool switchUp; //If switch is up or straight.
+	bool switchDir; //Direction of the switch. True means there are two ways to the right.
+	bool switchUp; //If switch is up or straight. True means it is angled.
 	int position; 
 	int nextPosRight; 
 	int nextPosLeft; 
@@ -40,9 +44,11 @@ Node graph[4];
 Light lights[LIGHTS];
 STrain trains[TRAINS];
 
+int switches[SWITCHES]; // Position of switch
+
 
 void updateLight(l_id id, bool on){
-
+if(false){
 	int pos = lights[id].pos;
 	bool dir = lights[id].dir;
 
@@ -54,7 +60,32 @@ void updateLight(l_id id, bool on){
 		}
 	}
 }
+}
 
+bool canSwitch(s_id id){
+
+	if(false){
+
+	//Can only move a switch if there is no train on it
+	int i;
+
+	for(i = 0; i &lt; TRAINS; i++){
+		if(trains[i].pos == switches[id]) return false;
+	}
+}
+	return true;
+}
+
+
+void updateSwitch(s_id id, bool angled){
+
+	if(false){
+
+	Node node = graph[switches[id]-1];
+
+	node.switchUp = angled;	
+}
+}
 
 
 bool canMove(t_id id){ //We here see if there is a stop light on
@@ -81,15 +112,56 @@ bool canMove(t_id id){ //We here see if there is a stop light on
 
 bool trainCrashed(t_id id){
 
+	if(false){
+
 	int pos = trains[id].pos;
 	int goal = trains[id].goal;
 	bool dir = trains[id].dir;
+
+	Node node = graph[pos-1];
+
+	//Train cashed if it is on a switch where it came from a point which was not the same way as the switch.
+
+
+
+	Node nextNode;
+
+	if(dir){ //Moving right
+		nextNode = graph[node.nextPosRight];
+	}else{
+		nextNode = graph[node.nextPosLeft];
+	}
+
+
+	if( nextNode.switch){ //If it is a switch it can be the wrong way.
+		if(nextNode.switchDir != dir){
+			if(nextNode.switchUp){ //If switch is angled
+				if(nextNode.nextPosSwitch != pos){//If not the right place
+					return true;
+				}
+			}else{
+				if(dir){
+					if(nextNode.nextPosLeft != pos){//If not the right place
+						return true;
+					}
+				}else{
+					if(nextNode.nextPosRight != pos){//If not the right place
+						return true;
+					}
+				}
+			}
+		}
+	}
+}
 	return false;
 }
 
 
 
 bool initGraph(){//All lights are red as default. If there is no light, it is green
+
+if(false){
+
 	Light tl =  {0,0,1}; //Dir, pos, on
 
 	STrain train1 = {1,4,true}; //Moving right
@@ -106,6 +178,8 @@ bool initGraph(){//All lights are red as default. If there is no light, it is gr
 	Node s10 = {0,0,0,3,2,0,0,5,tl,lights10};
 	Node s12 = {0,0,0,4,0,2,0,5,tl,tl};
 
+	switches[0] = 2;
+
 	lights[0] = lights20;
 	lights[1] = lights10;
 
@@ -120,6 +194,8 @@ bool initGraph(){//All lights are red as default. If there is no light, it is gr
 
 
 	return true;
+}
+return true;
 }
 
 
@@ -169,7 +245,7 @@ int newPos(t_id id){
 //int pos;
 //clock time;
 
-urgent broadcast chan go;</declaration><location id="id0" x="-312" y="-104"><name x="-322" y="-134">Init</name></location><location id="id1" x="0" y="48"><name x="-16" y="16">Crash</name></location><location id="id2" x="192" y="-24"><name x="176" y="-56">Move</name></location><location id="id3" x="-176" y="-32"><name x="-192" y="-64">Stop</name></location><init ref="id0"/><transition controllable="false" action=""><source ref="id0"/><target ref="id3"/><label kind="synchronisation" x="-264" y="-96">init_all?</label></transition><transition controllable="false" action=""><source ref="id2"/><target ref="id2"/><label kind="guard" x="240" y="-24">canMove(id)</label><label kind="synchronisation" x="132" y="-39">go!</label><label kind="assignment" x="240" y="-40">newPos(id)</label><nail x="232" y="-48"/><nail x="232" y="-16"/></transition><transition controllable="false" action=""><source ref="id2"/><target ref="id1"/><label kind="guard" x="56" y="24">trainCrashed(id)</label></transition><transition controllable="false" action=""><source ref="id3"/><target ref="id1"/><label kind="guard" x="-240" y="24">trainCrashed(id)</label></transition><transition controllable="false" action=""><source ref="id2"/><target ref="id3"/><label kind="guard" x="-72" y="-32">!canMove(id)</label><label kind="synchronisation" x="-52" y="-43">go!</label><nail x="48" y="-8"/><nail x="-32" y="-8"/></transition><transition controllable="false" action=""><source ref="id3"/><target ref="id2"/><label kind="guard" x="-80" y="-80">canMove(id)</label><label kind="synchronisation" x="48" y="-72">go!</label><label kind="assignment" x="-80" y="-96">newPos(id)</label><nail x="-24" y="-56"/><nail x="24" y="-56"/></transition></template><template><name>InitGraph</name><location id="id4" x="-88" y="-80"><name x="-98" y="-110">Initialized</name></location><location id="id5" x="-192" y="-80"><committed/></location><init ref="id5"/><transition action=""><source ref="id5"/><target ref="id4"/><label kind="synchronisation" x="-176" y="-104">init_all!</label><label kind="assignment" x="-160" y="-144">initGraph()</label></transition></template><template><name>LightA</name><parameter>l_id id</parameter><location id="id6" x="64" y="-48"><name x="54" y="-78">Green</name></location><location id="id7" x="-96" y="-48"><name x="-106" y="-78">Red</name></location><init ref="id7"/><transition action=""><source ref="id6"/><target ref="id7"/><label kind="assignment" x="-112" y="-16">updateLight(id,0)</label><nail x="24" y="-24"/><nail x="-56" y="-24"/></transition><transition action=""><source ref="id7"/><target ref="id6"/><label kind="assignment" x="-112" y="-104">updateLight(id,1)</label></transition></template><template><name>SwitchA</name><parameter>int pos, bool dir</parameter><location id="id8" x="0" y="-40"><name x="-10" y="-70">Angled</name></location><location id="id9" x="-128" y="-40"><name x="-138" y="-70">Straight</name></location><init ref="id9"/><transition><source ref="id8"/><target ref="id9"/><nail x="-40" y="-8"/><nail x="-104" y="-8"/></transition><transition><source ref="id9"/><target ref="id8"/><nail x="-104" y="-64"/><nail x="-40" y="-64"/></transition></template><system>// Place template instantiations here.
+urgent broadcast chan go;</declaration><location id="id0" x="-312" y="-104"><name x="-322" y="-134">Init</name></location><location id="id1" x="0" y="48"><name x="-16" y="16">Crash</name></location><location id="id2" x="192" y="-24"><name x="176" y="-56">Move</name></location><location id="id3" x="-176" y="-32"><name x="-192" y="-64">Stop</name></location><init ref="id0"/><transition controllable="false" action=""><source ref="id0"/><target ref="id3"/><label kind="synchronisation" x="-264" y="-96">init_all?</label></transition><transition controllable="false" action=""><source ref="id2"/><target ref="id2"/><label kind="guard" x="240" y="-24">canMove(id)</label><label kind="synchronisation" x="132" y="-39">go!</label><label kind="assignment" x="240" y="-40">newPos(id)</label><nail x="232" y="-48"/><nail x="232" y="-16"/></transition><transition controllable="false" action=""><source ref="id2"/><target ref="id1"/><label kind="guard" x="56" y="24">trainCrashed(id)</label></transition><transition controllable="false" action=""><source ref="id3"/><target ref="id1"/><label kind="guard" x="-240" y="24">trainCrashed(id)</label></transition><transition controllable="false" action=""><source ref="id2"/><target ref="id3"/><label kind="guard" x="-72" y="-32">!canMove(id)</label><label kind="synchronisation" x="-52" y="-43">go!</label><nail x="48" y="-8"/><nail x="-32" y="-8"/></transition><transition controllable="false" action=""><source ref="id3"/><target ref="id2"/><label kind="guard" x="-80" y="-80">canMove(id)</label><label kind="synchronisation" x="48" y="-72">go!</label><label kind="assignment" x="-80" y="-96">newPos(id)</label><nail x="-24" y="-56"/><nail x="24" y="-56"/></transition></template><template><name>InitGraph</name><location id="id4" x="-88" y="-80"><name x="-98" y="-110">Initialized</name></location><location id="id5" x="-192" y="-80"><committed/></location><init ref="id5"/><transition action=""><source ref="id5"/><target ref="id4"/><label kind="synchronisation" x="-176" y="-104">init_all!</label><label kind="assignment" x="-160" y="-144">initGraph()</label></transition></template><template><name>LightA</name><parameter>l_id id</parameter><location id="id6" x="64" y="-48"><name x="54" y="-78">Green</name></location><location id="id7" x="-96" y="-48"><name x="-106" y="-78">Red</name></location><init ref="id7"/><transition action=""><source ref="id6"/><target ref="id7"/><label kind="assignment" x="-112" y="-16">updateLight(id,0)</label><nail x="24" y="-24"/><nail x="-56" y="-24"/></transition><transition action=""><source ref="id7"/><target ref="id6"/><label kind="assignment" x="-112" y="-104">updateLight(id,1)</label></transition></template><template><name>SwitchA</name><parameter>s_id id</parameter><location id="id8" x="0" y="-40"><name x="-10" y="-70">Angled</name></location><location id="id9" x="-128" y="-40"><name x="-168" y="-72">Straight</name></location><init ref="id9"/><transition action=""><source ref="id8"/><target ref="id9"/><label kind="guard" x="-120" y="16">canSwitch(id)</label><label kind="assignment" x="-136" y="0">updateSwitch(id, 0)</label><nail x="-40" y="-8"/><nail x="-104" y="-8"/></transition><transition action=""><source ref="id9"/><target ref="id8"/><label kind="guard" x="-120" y="-88">canSwitch(id)</label><label kind="assignment" x="-144" y="-104">updateSwitch(id, 1)</label><nail x="-104" y="-64"/><nail x="-40" y="-64"/></transition></template><system>// Place template instantiations here.
 //Train1 = Train(1,4,true);
 //Train2 = Train(4,3,false);
 
@@ -178,4 +254,4 @@ urgent broadcast chan go;</declaration><location id="id0" x="-312" y="-104"><nam
 
 
 // List one or more processes to be composed into a system.
-system Train, InitGraph, LightA;</system></nta>
+system Train, InitGraph, LightA, SwitchA;</system></nta>
