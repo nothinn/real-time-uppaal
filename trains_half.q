@@ -11,6 +11,11 @@ control: A[forall(i:t_id)(!Train(i).Crash) U forall(j:t_id)(trains[j].pos == tra
 //NO_QUERY
 
 /*
+
+*/
+//NO_QUERY
+
+/*
 control:A<> trains[0].pos == 2
 */
 control:A<> trains[0].pos == 2
