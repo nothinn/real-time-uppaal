@@ -17,12 +17,12 @@ urgent broadcast chan init_all;
 bool trainMoved;
 
 chan switchChan[SWITCHES];
-chan lightChan[LIGHTS];
+chan lightChanOn[LIGHTS];
+chan lightChanOff[LIGHTS];
 
 
 //To find the next position, we need the current direction and position of the train.
 typedef struct{
-//	bool hasLight;
 	bool dir;
 	int pos;
 	bool on; //true means green
@@ -32,13 +32,13 @@ typedef struct{
 	bool switch; //If there is a switch or not
 	bool switchDir; //Direction of the switch. True means there are two ways to the right.
 	bool switchUp; //If switch is up or straight. True means it is angled.
-	int position; 
-	int nextPosRight; 
-	int nextPosLeft; 
+	int position; //Where the node is located
+	int nextPosRight; //Node connected to the right
+	int nextPosLeft; //Node connected to the left
 	int nextPosSwitch; //Switch default way is where it is not angled
 	int secLength;
-	Light stopLightRight;
-	Light stopLightLeft;
+	Light stopLightRight; //Light for the right side
+	Light stopLightLeft; //Light for the left side
 } Node;
 
 typedef struct{
@@ -91,6 +91,22 @@ void updateSwitch(s_id id, bool angled){
 }
 
 
+
+bool hasTrain(l_id id){ //Only allow the light to change to green if there is a train waiting.
+	int pos = lights[id].pos;	
+	bool dir = lights[id].dir;
+	int i = 0;
+
+	//Search for a train in the correct position
+	for(i = 0; i &lt; TRAINS; i++){
+		if(trains[i].pos == pos &amp;&amp; trains[i].dir == dir){
+			return true;
+		}
+	}
+	return false;
+}
+
+
 bool canMove(t_id id){ //We here see if there is a stop light on
 
 	int pos = trains[id].pos; //3
@@ -136,7 +152,6 @@ bool trainCrashed(t_id id){
 	
 
 	node = graph[pos-1];
-	//Train cashed if it is on a switch where it came from a point which was not the same way as the switch.
 	for (i= 0; i &lt; TRAINS; i++){
 		if(trains[i].pos == pos &amp;&amp; pos != trains[id].pos){
 			return true;
@@ -218,12 +233,9 @@ bool initGraph(){//All lights are red as default. If there is no light, it is gr
 
     //Trains
 	STrain train1 = {15,17,true,0}; //pos, goal, dir. Moving right. section possition
-	STrain train2 = {1,5,true,0}; //Moving left
+	STrain train2 = {1,5,true,0}; //Moving right
 	STrain train3 = {5,15,false,0}; //Moving left
 	//STrain train4 = {17,1,false,0}; //Moving left
-
-
-
 
     //Tracks
 	Node s30    = {0,0,0, 1, 2, 0, 0,200,lights30l,lights30r}; //switch, swichDir, switchUp, position, nextPosRight, nextPosLeft, nextPosSwitch, posLength, lightRight, lightLeft;
@@ -391,19 +403,13 @@ urgent broadcast chan go;</declaration><location id="id0" x="0" y="8"><name x="-
 !canMove(id)</label><label kind="assignment" x="-64" y="-48">time = 0,
 newSecPos(id, 50)</label></transition><transition controllable="false" action=""><source ref="id1"/><target ref="id4"/><label kind="guard" x="32" y="-120">time == 10 and
 canMove(id)</label><label kind="assignment" x="72" y="-96">time = 0, 
-newSecPos(id, 50)</label></transition><transition controllable="false" action=""><source ref="id5"/><target ref="id1"/><label kind="guard" x="-136" y="-112">canMove(id)</label><label kind="synchronisation" x="-80" y="-96">go!</label><label kind="assignment" x="-144" y="-88">time = 0</label></transition><transition controllable="false" action=""><source ref="id0"/><target ref="id5"/><label kind="guard" x="-152" y="-24">time == 10</label><label kind="assignment" x="-184" y="-8">newSecPos(id, 50)</label></transition><transition controllable="false" action=""><source ref="id4"/><target ref="id0"/><label kind="guard" x="40" y="8">!canMove(id)</label><label kind="synchronisation" x="96" y="-8">go!</label><label kind="assignment" x="32" y="-24">trainMoved = true, 
-time = 0</label></transition><transition action=""><source ref="id2"/><target ref="id5"/><label kind="synchronisation" x="-264" y="-96">init_all?</label><label kind="assignment" x="-304" y="-68">trainMoved = 1</label></transition><transition controllable="false" action=""><source ref="id4"/><target ref="id4"/><label kind="guard" x="240" y="-24">canMove(id) and time == 5</label><label kind="assignment" x="240" y="-48">newSecPos(id, 50), time = 0</label><nail x="232" y="-48"/><nail x="232" y="-16"/></transition><transition controllable="false" action=""><source ref="id4"/><target ref="id3"/><label kind="guard" x="48" y="96">trainCrashed(id)</label><label kind="synchronisation" x="176" y="88">go!</label><nail x="168" y="96"/></transition><transition controllable="false" action=""><source ref="id5"/><target ref="id3"/><label kind="guard" x="-208" y="80">trainCrashed(id)</label><label kind="synchronisation" x="-200" y="56">go!</label><nail x="-160" y="64"/></transition></template><template><name>InitGraph</name><declaration>int switchCounter, lightCounter;
+newSecPos(id, 50)</label></transition><transition controllable="false" action=""><source ref="id5"/><target ref="id1"/><label kind="guard" x="-136" y="-112">canMove(id)</label><label kind="synchronisation" x="-80" y="-96">go!</label><label kind="assignment" x="-144" y="-88">time = 0</label></transition><transition controllable="false" action=""><source ref="id0"/><target ref="id5"/><label kind="guard" x="-152" y="-24">time == 10</label><label kind="assignment" x="-184" y="-8">newSecPos(id, 50),
+trainMoved = true</label></transition><transition controllable="false" action=""><source ref="id4"/><target ref="id0"/><label kind="guard" x="40" y="8">!canMove(id)</label><label kind="synchronisation" x="96" y="-8">go!</label><label kind="assignment" x="32" y="-24">time = 0</label></transition><transition action=""><source ref="id2"/><target ref="id5"/><label kind="synchronisation" x="-264" y="-96">init_all?</label><label kind="assignment" x="-304" y="-68">trainMoved = 1</label></transition><transition controllable="false" action=""><source ref="id4"/><target ref="id4"/><label kind="guard" x="240" y="-24">canMove(id) and time == 5</label><label kind="assignment" x="240" y="-48">newSecPos(id, 50), time = 0</label><nail x="232" y="-48"/><nail x="232" y="-16"/></transition><transition controllable="false" action=""><source ref="id4"/><target ref="id3"/><label kind="guard" x="48" y="96">trainCrashed(id)</label><label kind="synchronisation" x="176" y="88">go!</label><nail x="168" y="96"/></transition><transition controllable="false" action=""><source ref="id5"/><target ref="id3"/><label kind="guard" x="-208" y="80">trainCrashed(id)</label><label kind="synchronisation" x="-200" y="56">go!</label><nail x="-160" y="64"/></transition></template><template><name>InitGraph</name><declaration>int switchCounter, lightCounter;
 
 clock timer;
-</declaration><location id="id6" x="48" y="0"><name x="56" y="32">moveLights</name><committed/></location><location id="id7" x="48" y="-80"><name x="64" y="-136">moveSwitches</name><committed/></location><location id="id8" x="-88" y="-80"><name x="-120" y="-104">Initialized</name></location><location id="id9" x="-192" y="-80"><committed/></location><init ref="id9"/><transition action=""><source ref="id6"/><target ref="id6"/><label kind="guard" x="-16" y="104">lightCounter &lt; LIGHTS</label><label kind="assignment" x="-16" y="80">lightCounter = lightCounter + 1</label><nail x="56" y="72"/><nail x="16" y="72"/></transition><transition action=""><source ref="id7"/><target ref="id7"/><label kind="guard" x="-8" y="-176">switchCounter &lt; SWITCHES</label><label kind="assignment" x="-8" y="-192">switchCounter = switchCounter + 1</label><nail x="48" y="-144"/><nail x="24" y="-144"/></transition><transition action=""><source ref="id6"/><target ref="id6"/><label kind="guard" x="144" y="32">lightCounter &lt; LIGHTS</label><label kind="synchronisation" x="144" y="16">lightChan[lightCounter]!</label><label kind="assignment" x="144" y="0">lightCounter = lightCounter + 1</label><nail x="136" y="0"/><nail x="136" y="32"/></transition><transition action=""><source ref="id6"/><target ref="id8"/><label kind="guard" x="-200" y="-40">lightCounter == LIGHTS</label><label kind="assignment" x="-120" y="-24">lightCounter = 0</label></transition><transition action=""><source ref="id7"/><target ref="id6"/><label kind="guard" x="56" y="-56">switchCounter == SWITCHES</label><label kind="assignment" x="56" y="-40">switchCounter = 0</label></transition><transition action=""><source ref="id7"/><target ref="id7"/><label kind="guard" x="128" y="-120">switchCounter &lt; SWITCHES</label><label kind="synchronisation" x="128" y="-88">switchChan[switchCounter]!</label><label kind="assignment" x="128" y="-104">switchCounter = switchCounter + 1</label><nail x="128" y="-104"/><nail x="128" y="-80"/><nail x="104" y="-80"/></transition><transition action=""><source ref="id8"/><target ref="id7"/><label kind="guard" x="-72" y="-96">trainMoved</label><label kind="assignment" x="-104" y="-120">trainMoved = false</label></transition><transition action=""><source ref="id9"/><target ref="id8"/><label kind="synchronisation" x="-176" y="-104">init_all!</label><label kind="assignment" x="-160" y="-144">initGraph()</label></transition></template><template><name>LightA</name><parameter>l_id id</parameter><location id="id10" x="64" y="-48"><name x="54" y="-78">Green</name></location><location id="id11" x="-96" y="-48"><name x="-106" y="-78">Red</name></location><init ref="id11"/><transition action=""><source ref="id10"/><target ref="id11"/><label kind="synchronisation" x="-88" y="56">lightChan[id]?</label><label kind="assignment" x="-88" y="32">updateLight(id,0),
-oneGreen = false</label><nail x="16" y="24"/><nail x="-64" y="24"/></transition><transition action=""><source ref="id11"/><target ref="id10"/><label kind="guard" x="-76" y="-78">oneGreen == false</label><label kind="synchronisation" x="-64" y="-64">lightChan[id]?</label><label kind="assignment" x="-112" y="-104">updateLight(id,1),
-oneGreen = true</label></transition></template><template><name>SwitchA</name><parameter>s_id id</parameter><location id="id12" x="0" y="-40"><name x="-10" y="-70">Angled</name></location><location id="id13" x="-128" y="-40"><name x="-168" y="-72">Straight</name></location><init ref="id13"/><transition action=""><source ref="id12"/><target ref="id13"/><label kind="guard" x="-120" y="16">canSwitch(id)</label><label kind="synchronisation" x="-120" y="32">switchChan[id]?</label><label kind="assignment" x="-136" y="0">updateSwitch(id, 0)</label><nail x="-40" y="-8"/><nail x="-104" y="-8"/></transition><transition action=""><source ref="id13"/><target ref="id12"/><label kind="guard" x="-120" y="-88">canSwitch(id)</label><label kind="synchronisation" x="-128" y="-120">switchChan[id]?</label><label kind="assignment" x="-144" y="-104">updateSwitch(id, 1)</label><nail x="-104" y="-64"/><nail x="-40" y="-64"/></transition></template><system>// Place template instantiations here.
-//Train1 = Train(1,4,true);
-//Train2 = Train(4,3,false);
-
-//l1 = LightA(1,1);
-//l2 = LightA(3,0);
-
-
+</declaration><location id="id6" x="-184" y="8"><name x="-224" y="-24">turnOnLight</name><committed/></location><location id="id7" x="72" y="8"><name x="32" y="-32">turnOffLight</name><committed/></location><location id="id8" x="72" y="-120"><name x="24" y="-160">moveSwitches</name><committed/></location><location id="id9" x="-184" y="-120"><name x="-216" y="-152">Initialized</name></location><location id="id10" x="-368" y="-200"><committed/></location><init ref="id10"/><transition action=""><source ref="id6"/><target ref="id6"/><label kind="guard" x="-432" y="0">lightCounter &lt; LIGHTS</label><label kind="assignment" x="-488" y="16">lightCounter = lightCounter + 1</label><nail x="-264" y="32"/><nail x="-264" y="0"/></transition><transition action=""><source ref="id6"/><target ref="id6"/><label kind="guard" x="-280" y="88">lightCounter &lt; LIGHTS</label><label kind="synchronisation" x="-296" y="104">lightChanOn[lightCounter]!</label><label kind="assignment" x="-312" y="72">lightCounter = lightCounter + 1</label><nail x="-176" y="72"/><nail x="-192" y="72"/><nail x="-208" y="72"/></transition><transition action=""><source ref="id6"/><target ref="id9"/><label kind="guard" x="-360" y="-88">lightCounter == LIGHTS</label><label kind="assignment" x="-304" y="-64">lightCounter = 0</label></transition><transition action=""><source ref="id7"/><target ref="id6"/><label kind="guard" x="-120" y="-8">lightCounter == LIGHTS</label><label kind="assignment" x="-96" y="8">lightCounter = 0</label></transition><transition action=""><source ref="id7"/><target ref="id7"/><label kind="guard" x="8" y="104">lightCounter &lt; LIGHTS</label><label kind="assignment" x="8" y="88">lightCounter = lightCounter + 1</label><nail x="80" y="80"/><nail x="40" y="80"/></transition><transition action=""><source ref="id8"/><target ref="id8"/><label kind="guard" x="16" y="-208">switchCounter &lt; SWITCHES</label><label kind="assignment" x="16" y="-224">switchCounter = switchCounter + 1</label><nail x="72" y="-184"/><nail x="48" y="-184"/></transition><transition action=""><source ref="id7"/><target ref="id7"/><label kind="guard" x="168" y="40">lightCounter &lt; LIGHTS</label><label kind="synchronisation" x="168" y="24">lightChanOff[lightCounter]!</label><label kind="assignment" x="168" y="8">lightCounter = lightCounter + 1</label><nail x="160" y="8"/><nail x="160" y="40"/></transition><transition action=""><source ref="id8"/><target ref="id7"/><label kind="guard" x="72" y="-80">switchCounter == SWITCHES</label><label kind="assignment" x="72" y="-64">switchCounter = 0</label></transition><transition action=""><source ref="id8"/><target ref="id8"/><label kind="guard" x="152" y="-160">switchCounter &lt; SWITCHES</label><label kind="synchronisation" x="152" y="-128">switchChan[switchCounter]!</label><label kind="assignment" x="152" y="-144">switchCounter = switchCounter + 1</label><nail x="152" y="-144"/><nail x="152" y="-120"/><nail x="128" y="-120"/></transition><transition action=""><source ref="id9"/><target ref="id8"/><label kind="guard" x="-88" y="-120">trainMoved</label><label kind="assignment" x="-112" y="-136">trainMoved = false</label></transition><transition action=""><source ref="id10"/><target ref="id9"/><label kind="synchronisation" x="-312" y="-192">init_all!</label><label kind="assignment" x="-328" y="-208">initGraph()</label></transition></template><template><name>LightA</name><parameter>l_id id</parameter><location id="id11" x="64" y="-48"><name x="88" y="-56">Green</name></location><location id="id12" x="-96" y="-48"><name x="-144" y="-56">Red</name></location><init ref="id12"/><transition action=""><source ref="id11"/><target ref="id12"/><label kind="synchronisation" x="-88" y="48">lightChanOff[id]?</label><label kind="assignment" x="-88" y="24">updateLight(id,0),
+oneGreen = false</label><nail x="16" y="24"/><nail x="-64" y="24"/></transition><transition action=""><source ref="id12"/><target ref="id11"/><label kind="guard" x="-80" y="-88">oneGreen == false
+&amp;&amp; hasTrain(id)</label><label kind="synchronisation" x="-80" y="-64">lightChanOn[id]?</label><label kind="assignment" x="-80" y="-112">updateLight(id,1),
+oneGreen = true</label></transition></template><template><name>SwitchA</name><parameter>s_id id</parameter><location id="id13" x="0" y="-40"><name x="-10" y="-70">Angled</name></location><location id="id14" x="-128" y="-40"><name x="-168" y="-72">Straight</name></location><init ref="id14"/><transition action=""><source ref="id13"/><target ref="id14"/><label kind="guard" x="-120" y="16">canSwitch(id)</label><label kind="synchronisation" x="-120" y="32">switchChan[id]?</label><label kind="assignment" x="-136" y="0">updateSwitch(id, 0)</label><nail x="-40" y="-8"/><nail x="-104" y="-8"/></transition><transition action=""><source ref="id14"/><target ref="id13"/><label kind="guard" x="-120" y="-88">canSwitch(id)</label><label kind="synchronisation" x="-128" y="-120">switchChan[id]?</label><label kind="assignment" x="-144" y="-104">updateSwitch(id, 1)</label><nail x="-104" y="-64"/><nail x="-40" y="-64"/></transition></template><system>// Place template instantiations here.
 // List one or more processes to be composed into a system.
 system Train, InitGraph, LightA, SwitchA;</system></nta>
